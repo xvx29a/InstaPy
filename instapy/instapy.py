@@ -31,6 +31,7 @@ from .like_util import like_image
 from .like_util import get_links_for_username
 from .login_util import login_user
 from .print_log_writer import log_follower_num
+from .print_log_writer import log_following_num
 from .settings import Settings
 from .time_util import sleep
 from .time_util import set_sleep_percentage
@@ -114,6 +115,7 @@ class InstaPy:
         self.inap_img = 0
         self.commented = 0
         self.followed_by = 0
+        self.following_by = 0
         self.unfollowNumber = 0
 
         self.follow_restrict = load_follow_restriction(self.logfolder)
@@ -327,6 +329,7 @@ class InstaPy:
             self.logger.info('Logged in successfully!')
 
         self.followed_by = log_follower_num(self.browser, self.username, self.logfolder)
+        self.following_by = log_following_num(self.browser, self.username, self.logfolder)
 
         return self
 
@@ -593,7 +596,6 @@ class InstaPy:
                                  '{} times'.format(
                                     acc_to_follow, str(self.follow_times)))
                 sleep(1)
-
         return self
 
     def set_relationship_bounds (self,
@@ -1365,7 +1367,7 @@ class InstaPy:
             # Will we follow this user?
             following = random.randint(0, 100) <= self.follow_percentage
 
-            for i, link in enumerate(links):
+            for i, link in enumerate(links[:amount]):
                 # Check if target has reached
                 if liked_img >= amount:
                     self.logger.info('-------------')
@@ -1647,11 +1649,13 @@ class InstaPy:
             self.logger.info('--> User followed: {}'.format(userFollowed))
             userFollowed = random.sample(userFollowed, int(ceil(
                 self.user_interact_percentage * len(userFollowed) / 100)))
-            self.like_by_users(userFollowed,
+            original_do_follow = self.do_follow
+            self_do_follow = False
+            self.interact_by_users(userFollowed,
                                self.user_interact_amount,
                                self.user_interact_random,
                                self.user_interact_media)
-
+            self.do_follow = original_do_follow
         return self
 
     def follow_user_following(self,

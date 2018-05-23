@@ -403,6 +403,15 @@ def follow_user(browser, follow_restrict, login, user_name, blacklist, logger, l
             update_activity('follows')
 
         logger.info('--> Now following')
+        request_button = browser.find_element_by_xpath(
+            "//*[contains(text(), 'Requested')]")
+        if request_button:
+            sleep(3)
+            logger.info("Phew! '{}' is a private accaunt, immidiately unfollowing!\n".format(user_name))
+            click_element(browser, request_button)
+            follow_restrict[user_name] = follow_restrict.get(user_name, 0) + 2
+            sleep(1)
+            return 0
         logtime = datetime.now().strftime('%Y-%m-%d %H:%M')
         log_followed_pool(login, user_name, logger, logfolder, logtime)
         follow_restrict[user_name] = follow_restrict.get(user_name, 0) + 1
@@ -449,6 +458,15 @@ def follow_given_user(browser,
 
     try:
         sleep(10)
+        try:
+            privatecheck = format_number(
+                browser.find_element_by_xpath("//li[2]/a/span").text)
+        except NoSuchElementException:
+            logger.warning('---> {} is private. Not requested.'.format(acc_to_follow))
+            sleep(3)
+            follow_restrict[acc_to_follow] = follow_restrict.get(
+                acc_to_follow, 0) + 2
+            return 0
         follow_button = browser.find_element_by_xpath("//*[text()='Follow']")
         click_element(browser, follow_button) # unfollow_button.send_keys("\n")
         update_activity('follows')
@@ -576,14 +594,35 @@ def follow_through_dialog(browser,
                 click_element(browser, button) # button.send_keys("\n")
                 logtime = datetime.now().strftime('%Y-%m-%d %H:%M')
                 log_followed_pool(login, person, logger, logfolder, logtime)
-
                 update_activity('follows')
 
                 follow_restrict[person] = follow_restrict.get(person, 0) + 1
-
+                sleep(2)
                 logger.info('--> Ongoing follow {}, now following: {}'
                             .format(str(followNum), person.encode('utf-8')))
-
+                request_buttons = dialog.find_elements_by_xpath(
+                           "//div/div/span/button[text()='Requested']")
+                sleep(1)
+                if request_buttons:
+                        private_person = 'undefined'
+                        request_button = None
+                        for req_button in request_buttons:
+                                if req_button and hasattr(req_button, 'text') and req_button.text:
+                                    try:
+                                        private_person = (req_button.find_element_by_xpath("../../../*")
+                                                       .find_elements_by_tag_name("a")[1].text)
+                                        if private_person == person:
+                                            request_button = req_button
+                                            sleep(random.randint(1,2))
+                                            break
+                                    except IndexError:
+                                        pass  # Element list is too short to have a [1] element
+                        if private_person == person:
+                            logger.info("Phew! '{}' is a private accaunt, immidiately unfollowing!\n".format(person))
+                            click_element(browser, request_button)
+#                            follow_restrict[person] = follow_restrict.get(person, 0) - 1
+                            sleep(1)
+                            continue
                 if blacklist['enabled'] is True:
                     action = 'followed'
                     add_user_to_blacklist(

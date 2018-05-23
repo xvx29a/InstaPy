@@ -26,6 +26,30 @@ def log_follower_num(browser, username, logfolder):
 
     return followed_by
 
+def log_following_num(browser, username, logfolder):
+    """Prints and logs the current number of followers to
+    a seperate file"""
+    browser.get('https://www.instagram.com/' + username)
+
+    try:
+        following_by = browser.execute_script(
+            "return window._sharedData.""entry_data.ProfilePage[0]."
+            "graphql.user.edge_follow.count")
+    except WebDriverException:   #handle the possible `entry_data` error
+        try:
+            browser.execute_script("location.reload()")
+            following_by = browser.execute_script(
+                "return window._sharedData.""entry_data.ProfilePage[0]."
+                "graphql.user.edge_follow.count")
+        except WebDriverException:
+            following_by = None
+
+    with open('{}followingNum.txt'.format(logfolder), 'a') as numFile:
+        numFile.write(
+            '{:%Y-%m-%d %H:%M} {}\n'.format(datetime.now(), following_by or 0))
+
+    return following_by
+
 
 def log_followed_pool(login, followed, logger, logfolder, logtime):
     """Prints and logs the followed to

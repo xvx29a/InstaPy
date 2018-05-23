@@ -298,6 +298,14 @@ def get_links_for_username(browser,
     else:
         if is_private:
             logger.warning('This user is private...')
+            request_button = browser.find_element_by_xpath(
+                 "//*[contains(text(), 'Requested')]")
+            if request_button:
+                sleep(3)
+                logger.info("Phew! '{}' is a private accaunt, immidiately unfollowing!\n".format(username))
+                click_element(browser, request_button)
+                sleep(1)
+                return 0
             return False
 
     abort = True
