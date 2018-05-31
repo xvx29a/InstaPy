@@ -407,7 +407,7 @@ def follow_user(browser, follow_restrict, login, user_name, blacklist, logger, l
             "//*[contains(text(), 'Requested')]")
         if request_button:
             sleep(3)
-            logger.info("Phew! '{}' is a private accaunt, immidiately unfollowing!\n".format(user_name))
+            logger.info("Phew! '{}' is a private account, immediately unfollowing!\n".format(user_name))
             click_element(browser, request_button)
             follow_restrict[user_name] = follow_restrict.get(user_name, 0) + 2
             sleep(1)
@@ -598,8 +598,8 @@ def follow_through_dialog(browser,
 
                 follow_restrict[person] = follow_restrict.get(person, 0) + 1
                 sleep(2)
-                logger.info('--> Ongoing follow {}, now following: {}'
-                            .format(str(followNum), person.encode('utf-8')))
+                logger.info('--> Ongoing follow {}, now following: {}, from account: {}'
+                            .format(str(followNum), person.encode('utf-8'), user_name.encode('utf-8')))
                 request_buttons = dialog.find_elements_by_xpath(
                            "//div/div/span/button[text()='Requested']")
                 sleep(1)
@@ -618,8 +618,9 @@ def follow_through_dialog(browser,
                                     except IndexError:
                                         pass  # Element list is too short to have a [1] element
                         if private_person == person:
-                            logger.info("Phew! '{}' is a private accaunt, immidiately unfollowing!\n".format(person))
+                            logger.info("Phew! '{}' is a private account, immediately unfollowing!\n".format(person))
                             click_element(browser, request_button)
+                            followNum -= 1
 #                            follow_restrict[person] = follow_restrict.get(person, 0) - 1
                             sleep(1)
                             continue
